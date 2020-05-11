@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BooksDb.Entities
 {
-    public class BookDb
+    public class BookDb : AuditBaseDb
     {
         public BookDb()
         {

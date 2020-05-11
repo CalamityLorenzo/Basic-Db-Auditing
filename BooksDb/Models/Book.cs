@@ -17,19 +17,19 @@ namespace BooksDb.Models
             DatePublished = datePublished;
             Reviews = new List<Review>(reviews);
         }
-// no id
+        // no id
         public Book(string name, string author, int pages, string blurb, DateTime datePublished, IEnumerable<Review> reviews) : this(Guid.Empty, name, author, pages, blurb, datePublished, reviews)
         { }
         // no id no reviews
         public Book(string name, string author, int pages, string blurb, DateTime datePublished) : this(Guid.Empty, name, author, pages, blurb, datePublished, Enumerable.Empty<Review>())
         { }
 
-        public Guid Id {get;}
-        public string Name {get;}
-        public string Author {get;}
-        public int Pages {get;}
-        public string Blurb {get;}
-        public DateTime DatePublished {get;}
+        public Guid Id { get; }
+        public string Name { get; }
+        public string Author { get; }
+        public int Pages { get; }
+        public string Blurb { get; }
+        public DateTime DatePublished { get; }
 
         public IEnumerable<Review> Reviews { get; }
 

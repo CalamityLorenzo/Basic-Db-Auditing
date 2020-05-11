@@ -8,14 +8,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BooksDb.ModelBuilders
 {
-    class BookModelBuilder : IEntityTypeConfiguration<BookDb>
+    class BookModelBuilder : BaseAuditBuilder<BookDb>
     {
-        public void Configure(EntityTypeBuilder<BookDb> builder)
+        public override void Configure (EntityTypeBuilder<BookDb> builder)
         {
             builder.Property(p => p.Id).HasDefaultValueSql("NEWID()");
             builder.Property(p => p.DatePublished).HasColumnType("date").IsRequired(true);
             builder.Property(p => p.Author).IsRequired();
             builder.Property(p => p.Name).IsRequired();
+
+            base.Configure(builder);
         }
     }
 }

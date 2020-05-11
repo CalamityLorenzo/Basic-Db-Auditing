@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BooksDb.Entities
 {
-    public class ReviewDb
+    public class ReviewDb : AuditBaseDb
     {
         public Guid Id { get; set; }
         public Guid BookId { get; set; }
