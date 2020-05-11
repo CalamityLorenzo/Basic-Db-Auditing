@@ -6,16 +6,20 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using BooksDb.Repositories;
+using BooksDb.Services;
+using System.Net.Security;
 
 namespace Basic.BooksDb.Repositories
 {
-    public class BooksRepository : BaseAuditRepository
+    public class BooksRepository
     {
         private readonly BooksDbContext _ctx;
+        private readonly AuditService auditService;
 
-        public BooksRepository(BooksDbContext ctx, string userName) : base(userName)
+        public BooksRepository(BooksDbContext ctx, AuditService auditService)
         {
             this._ctx = ctx;
+            this.auditService = auditService;
         }
 
         /// <summary>
@@ -25,9 +29,8 @@ namespace Basic.BooksDb.Repositories
         public Book AddBook(Book newBook)
         {
             var newBookDb = newBook.ToDb();
-            this.NewAuditInfo(newBookDb);
-            this.NewAuditInfo(newBookDb.Reviews);
-
+            auditService.NewAuditInfo(newBookDb);
+            auditService.NewAuditInfo(newBookDb.Reviews);
             var saved = this._ctx.Add(newBookDb);
             _ctx.SaveChanges();
             return saved.Entity.ToClient();
@@ -42,7 +45,7 @@ namespace Basic.BooksDb.Repositories
         {
             var newReview = review.ToDb();
             newReview.BookId = Id;
-            this.NewAuditInfo(newReview);
+            auditService.NewAuditInfo(newReview);
             var reviewTracking = this._ctx.Reviews.Add(newReview);
             _ctx.SaveChanges();
             return reviewTracking.Entity.ToClient();
@@ -67,14 +70,15 @@ namespace Basic.BooksDb.Repositories
                 r.BookId = book.Id;
                 if (r.Id != Guid.Empty)
                 {
-                    this.MigrateAudit(r, allReviews.First(a => a.Id == r.Id));
-                    this.UpdateAuditInfo(r);
+                    auditService.MigrateAudit(r, allReviews.First(p=>p.Id == r.Id));
+                    auditService.UpdateAuditInfo(r);
                 }
-                else NewAuditInfo(r);
+                else 
+                    auditService.NewAuditInfo(r);
                 return r;
             }).ToList();
 
-            UpdateAuditInfo(dbBook);
+            auditService.UpdateAuditInfo(dbBook);
             // Fetch all the original reviews and find out if any are missing.
             // These missing ones are removed.
             var removedReviews = allReviews.Where(a => !dbBook.Reviews.Any(db => db.Id != a.Id)).ToList();
@@ -104,9 +108,7 @@ namespace Basic.BooksDb.Repositories
         {
 
             var review = _ctx.Reviews.Include(p => p.Book).AsNoTracking().First(p => p.Id == ReviewId);
-
-            this.UpdateAuditInfo(review.Book);
-
+            auditService.UpdateAuditInfo(review.Book);
             _ctx.Reviews.Remove(review);
             _ctx.SaveChanges();
         }

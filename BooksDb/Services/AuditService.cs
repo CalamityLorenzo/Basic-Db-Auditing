@@ -1,17 +1,20 @@
 ﻿using BooksDb.Entities;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BooksDb.Repositories
+namespace BooksDb.Services
 {
-    public abstract class BaseAuditRepository
+    /// <summary>
+    /// Handles the management of Audit information
+    /// for a db entity.
+    /// </summary>
+    public class AuditService : IAuditService
     {
         private readonly string userName;
 
-        // user who has made the requests.
-        public BaseAuditRepository(string userName)
+        public AuditService(string userName)
         {
             this.userName = userName;
         }
@@ -27,19 +30,19 @@ namespace BooksDb.Repositories
             updated.CreatedBy = original.CreatedBy;
         }
 
-        protected void NewAuditInfo(AuditBaseDb entity)
+        public void NewAuditInfo(AuditBaseDb entity)
         {
             var cDate = DateTime.UtcNow;
             NewAuditInfo(entity, cDate);
             UpdateAuditInfo(entity, cDate);
         }
 
-        protected void NewAuditInfo(IEnumerable<AuditBaseDb> entities)
+        public void NewAuditInfo(IEnumerable<AuditBaseDb> entities)
         {
             var cDate = DateTime.UtcNow;
-            foreach (var entity in entities )
+            foreach (var entity in entities)
             {
-                NewAuditInfo(entity,cDate);
+                NewAuditInfo(entity, cDate);
                 UpdateAuditInfo(entity, cDate);
             }
         }
@@ -50,12 +53,12 @@ namespace BooksDb.Repositories
             entity.Created = utcDatePlease;
         }
 
-        protected void UpdateAuditInfo(AuditBaseDb entity)
+        public void UpdateAuditInfo(AuditBaseDb entity)
         {
             var cDate = DateTime.UtcNow;
             UpdateAuditInfo(entity, cDate);
         }
-        
+
         private void UpdateAuditInfo(AuditBaseDb entity, DateTime utcDatePlease)
         {
             entity.Modified = utcDatePlease;
