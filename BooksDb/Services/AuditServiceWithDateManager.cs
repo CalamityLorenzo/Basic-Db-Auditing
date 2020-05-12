@@ -15,6 +15,7 @@ namespace BooksDb.Services
             this.userName = userName;
             this.dateTimeService = dateTimeService;
         }
+
         public void MigrateAudit(AuditBaseDb updated, AuditBaseDb original)
         {
             updated.Created = original.Created;
@@ -26,6 +27,16 @@ namespace BooksDb.Services
             var date = this.dateTimeService();
             NewAuditInfo(entity, date);
             UpdateAuditInfo(entity, date);
+        }
+
+        public void NewAuditInfo(IEnumerable<AuditBaseDb> entities)
+        {
+            var cDate = DateTime.UtcNow;
+            foreach (var entity in entities)
+            {
+                NewAuditInfo(entity, cDate);
+                UpdateAuditInfo(entity, cDate);
+            }
         }
 
         public void UpdateAuditInfo(AuditBaseDb entity)

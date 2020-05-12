@@ -14,9 +14,9 @@ namespace Basic.BooksDb.Repositories
     public class BooksRepository
     {
         private readonly BooksDbContext _ctx;
-        private readonly AuditService auditService;
+        private readonly IAuditService auditService;
 
-        public BooksRepository(BooksDbContext ctx, AuditService auditService)
+        public BooksRepository(BooksDbContext ctx, IAuditService auditService)
         {
             this._ctx = ctx;
             this.auditService = auditService;
@@ -110,6 +110,7 @@ namespace Basic.BooksDb.Repositories
             var review = _ctx.Reviews.Include(p => p.Book).AsNoTracking().First(p => p.Id == ReviewId);
             auditService.UpdateAuditInfo(review.Book);
             _ctx.Reviews.Remove(review);
+            _ctx.Books.Update(review.Book);
             _ctx.SaveChanges();
         }
 
