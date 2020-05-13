@@ -60,12 +60,13 @@ namespace Basic.BooksDb.Repositories
         /// <param name="book"></param>
         public void UpdateBook(Book book)
         {
-            var dbBook = book.ToDb();
+            var dbUpdateBook = book.ToDb();
             // update all the reviews to have at least the correct bookId
             // not doing this means NEW reviews are skipped.
             // Lets also sneak in the audit Updates
-            var allReviews = _ctx.Reviews.Where(r => r.BookId == dbBook.Id).ToList();
-            dbBook.Reviews = dbBook.Reviews.Select(r =>
+            var dbBook = _ctx.Books.Include(p=>p.Reviews).First(p=>p.Id ==book.Id);
+            var allReviews = dbBook.Reviews.ToList();
+            dbUpdateBook.Reviews = dbUpdateBook.Reviews.Select(r =>
             {
                 r.BookId = book.Id;
                 if (r.Id != Guid.Empty)
@@ -78,13 +79,14 @@ namespace Basic.BooksDb.Repositories
                 return r;
             }).ToList();
 
-            auditService.UpdateAuditInfo(dbBook);
+            auditService.MigrateAudit(dbUpdateBook, dbBook);
+            auditService.UpdateAuditInfo(dbUpdateBook);
             // Fetch all the original reviews and find out if any are missing.
             // These missing ones are removed.
-            var removedReviews = allReviews.Where(a => !dbBook.Reviews.Any(db => db.Id != a.Id)).ToList();
+            var removedReviews = allReviews.Where(a => !dbUpdateBook.Reviews.Any(db => db.Id != a.Id)).ToList();
             _ctx.Reviews.RemoveRange(removedReviews);
 
-            _ctx.Books.Update(dbBook);
+            _ctx.Books.Update(dbUpdateBook);
             _ctx.SaveChanges();
         }
 
@@ -106,7 +108,6 @@ namespace Basic.BooksDb.Repositories
         /// <param name="ReviewId"></param>
         public void DropReview(Guid ReviewId)
         {
-
             var review = _ctx.Reviews.Include(p => p.Book).AsNoTracking().First(p => p.Id == ReviewId);
             auditService.UpdateAuditInfo(review.Book);
             _ctx.Reviews.Remove(review);
